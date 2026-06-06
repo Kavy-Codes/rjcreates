@@ -1,129 +1,122 @@
 name: Update YouTube Videos Feed
 
 on:
-schedule:
-# Runs every 4 hours to keep the portfolio freshly synced
-- cron: '0 */4 * * *'
-
-workflow_dispatch: # Allows manual triggering from the Actions tab
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
 
 permissions:
-contents: write
+  contents: write
 
 jobs:
-fetch-feed:
-runs-on: ubuntu-latest
+  fetch-feed:
+    runs-on: ubuntu-latest
 
-```
-steps:
-  - name: Checkout Repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  # Running robust Node.js parser to fetch and write videos.json
-  - name: Fetch YouTube XML and Parse to JSON
-    run: |
-      node -e "
-      const fs = require('fs');
-      const https = require('https');
+      - name: Fetch YouTube XML and Parse to JSON
+        run: |
+          node -e "
+          const fs = require('fs');
+          const https = require('https');
 
-      const channelId = 'UC0snrsML_aXCSx9I7Gaa-mA';
-      const url = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId;
+          const channelId = 'UC0snrsML_aXCSx9I7Gaa-mA';
+          const url = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId;
 
-      console.log('Fetching live YouTube RSS feed...');
+          https.get(url, (res) => {
+            let data = '';
 
-      https.get(url, (res) => {
-        let data = '';
+            res.on('data', chunk => {
+              data += chunk;
+            });
 
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
+            res.on('end', () => {
+              const entries = data.split('<entry>');
+              const videos = [];
 
-        res.on('end', () => {
-          const entries = data.split('<entry>');
-          const videos = [];
+              for (let i = 1; i < entries.length; i++) {
+                const entry = entries[i];
 
-          for (let i = 1; i < entries.length; i++) {
-            const entry = entries[i];
+                const idMatch = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+                if (!idMatch) continue;
 
-            const idMatch = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
-            if (!idMatch) continue;
+                const videoId = idMatch[1];
 
-            const videoId = idMatch[1];
+                const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
+                const title = titleMatch ? titleMatch[1] : '';
 
-            const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
-            const title = titleMatch ? titleMatch[1] : '';
+                const linkMatch = entry.match(/<link[^>]+href=\"([^\"]+)\"/);
+                const link = linkMatch ? linkMatch[1] : '';
 
-            const linkMatch = entry.match(/<link[^>]+href=\"([^\"]+)\"/);
-            const link = linkMatch ? linkMatch[1] : '';
+                const descMatch =
+                  entry.match(/<media:description>([^<]+)<\/media:description>/) ||
+                  entry.match(/<description>([^<]+)<\/description>/);
 
-            const descMatch =
-              entry.match(/<media:description>([^<]+)<\/media:description>/) ||
-              entry.match(/<description>([^<]+)<\/description>/);
+                const desc = descMatch ? descMatch[1] : '';
 
-            const desc = descMatch ? descMatch[1] : '';
+                const titleLower = title.toLowerCase();
+                const descLower = desc.toLowerCase();
 
-            const titleLower = title.toLowerCase();
-            const descLower = desc.toLowerCase();
+                const isShort =
+                  link.includes('/shorts/') ||
+                  titleLower.includes('#shorts') ||
+                  titleLower.includes('#short') ||
+                  descLower.includes('#shorts') ||
+                  descLower.includes('#short') ||
+                  titleLower.startsWith('shorts/');
 
-            // Exclude Shorts
-            const isShort =
-              link.includes('/shorts/') ||
-              titleLower.includes('#shorts') ||
-              titleLower.includes('#short') ||
-              descLower.includes('#shorts') ||
-              descLower.includes('#short') ||
-              titleLower.startsWith('shorts/');
+                if (!isShort) {
+                  videos.push({
+                    id: videoId,
+                    title: title
+                  });
 
-            if (!isShort) {
-              videos.push({
-                id: videoId,
-                title: title
-              });
-
-              if (videos.length >= 2) break;
-            }
-          }
-
-          if (videos.length === 0) {
-            console.log('No traditional videos parsed. Using fallback list.');
-
-            videos.push(
-              {
-                id: 'lK19ZXGPN-o',
-                title: 'Unlocking *NEW FREE* Legendary as F2P Early || REALRJPLAYS || CoDM'
-              },
-              {
-                id: 'JLEqELqfOwU',
-                title: 'Why You’re Still a Noob (and how to fix it)'
+                  if (videos.length >= 2) break;
+                }
               }
-            );
-          }
 
-          fs.writeFileSync(
-            'videos.json',
-            JSON.stringify(videos, null, 2)
-          );
+              if (videos.length === 0) {
+                videos.push(
+                  {
+                    id: 'lK19ZXGPN-o',
+                    title: 'Unlocking *NEW FREE* Legendary as F2P Early || REALRJPLAYS || CoDM'
+                  },
+                  {
+                    id: 'JLEqELqfOwU',
+                    title: 'Why You’re Still a Noob (and how to fix it)'
+                  }
+                );
+              }
 
-          console.log('Successfully updated videos.json with:', videos);
-        });
-      }).on('error', (err) => {
-        console.error('Failed to communicate with YouTube RSS:', err);
-        process.exit(1);
-      });
-      "
+              fs.writeFileSync(
+                'videos.json',
+                JSON.stringify(videos, null, 2)
+              );
 
-  # Commit and push updated videos.json
-  - name: Commit and Push Updated Feed
-    run: |
-      git config --global user.name "github-actions[bot]"
-      git config --global user.email "github-actions[bot]@users.noreply.github.com"
+              console.log('videos.json updated');
+            });
+          }).on('error', (err) => {
+            console.error(err);
+            process.exit(1);
+          });
+          "
 
-      git add videos.json
+      - name: Commit and Push Updated Feed
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      if git diff --staged --quiet; then
-        echo "No new updates in RJ's YouTube feed since last run."
-      else
-        git commit -m "chore: dynamically update youtube videos feed [skip ci]"
-        git push
-      fi
-```
+          git add videos.json
+
+          if git diff --cached --quiet; then
+            echo "No new videos found."
+          else
+            git commit -m "chore: update youtube feed [skip ci]"
+            git push origin HEAD
+          fi
