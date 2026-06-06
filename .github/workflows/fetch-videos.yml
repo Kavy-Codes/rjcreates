@@ -1,74 +1,117 @@
-  - name: Checkout Repository
-    uses: actions/checkout@v4
+- name: Checkout Repository
+  uses: actions/checkout@v4
 
-  - name: Fetch YouTube XML and Parse to JSON
-    run: |
-      node -e "
-      const fs = require('fs');
+- name: Fetch YouTube XML and Parse to JSON
+  run: |
+    cat > fetch-videos.js << 'EOF'
+    const fs = require('fs');
 
-      async function fetchVideos() {
-        const channelId = 'UC0snrsML_aXCSx9I7Gaa-mA';
-        // Appending a timestamp bypasses YouTube's internal CDN cache for the freshest feed
-        const url = 'https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId + '&t=' + Date.now();
+    async function fetchVideos() {
+      const channelId = 'UC0snrsML_aXCSx9I7Gaa-mA';
+      const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}&t=${Date.now()}`;
 
-        console.log('Fetching live YouTube RSS feed...');
-        try {
-          const res = await fetch(url, { cache: 'no-store' });
-          const data = await res.text();
-          
-          const entries = data.split('<entry>');
-          const videos = [];
-          
-          for (let i = 1; i < entries.length; i++) {
-            const entry = entries[i];
-            
-            const idMatch = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
-            if (!idMatch) continue;
-            const videoId = idMatch[1];
-            
-            const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
-            const title = titleMatch ? titleMatch[1] : '';
-            
-            const linkMatch = entry.match(/<link[^>]+href=\"([^\"]+)\"/);
-            const link = linkMatch ? linkMatch[1] : '';
-            
-            const descMatch = entry.match(/<media:description>([^<]+)<\/media:description>/) || entry.match(/<description>([^<]+)<\/description>/);
-            const desc = descMatch ? descMatch[1] : '';
-            
-            const titleLower = title.toLowerCase();
-            const descLower = desc.toLowerCase();
-            
-            // Exclude Shorts reliably via titles, hashtags, link formats or descriptions
-            const isShort = link.includes('/shorts/') || 
-                            titleLower.includes('#shorts') || 
-                            titleLower.includes('#short') || 
-                            descLower.includes('#shorts') || 
-                            descLower.includes('#short') ||
-                            titleLower.startsWith('shorts/');
-                            
-            if (!isShort) {
-              videos.push({ id: videoId, title: title });
-              if (videos.length >= 2) break;
-            }
+      console.log('Fetching live YouTube RSS feed...');
+
+      try {
+        const res = await fetch(url, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
           }
-          
-          if (videos.length === 0) {
-            console.log('No traditional videos parsed. Using fallback lists.');
-            videos.push(
-              { id: 'lK19ZXGPN-o', title: 'Unlocking *NEW FREE* Legendary as F2P Early || REALRJPLAYS || CoDM' },
-              { id: 'JLEqELqfOwU', title: 'Why You’re Still a Noob (and how to fix it)' }
-            );
-          }
+        });
 
-          fs.writeFileSync('videos.json', JSON.stringify(videos, null, 2));
-          console.log('Successfully updated videos.json with:', videos);
-        } catch (err) {
-          console.error('Failed to communicate with YouTube RSS:', err);
-          process.exit(1);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
         }
-      }
-      
-      fetchVideos();
-      "
 
-  - name: Commit and Push Updated Feed
+        const data = await res.text();
+
+        const entries = data.split('<entry>');
+        const videos = [];
+
+        for (let i = 1; i < entries.length; i++) {
+          const entry = entries[i];
+
+          const idMatch = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+          if (!idMatch) continue;
+
+          const videoId = idMatch[1];
+
+          const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
+          const title = titleMatch ? titleMatch[1].trim() : '';
+
+          const linkMatch = entry.match(/<link[^>]+href="([^"]+)"/);
+          const link = linkMatch ? linkMatch[1] : '';
+
+          const descMatch =
+            entry.match(/<media:description>([\s\S]*?)<\/media:description>/) ||
+            entry.match(/<description>([\s\S]*?)<\/description>/);
+
+          const desc = descMatch ? descMatch[1] : '';
+
+          const titleLower = title.toLowerCase();
+          const descLower = desc.toLowerCase();
+
+          const isShort =
+            link.includes('/shorts/') ||
+            titleLower.includes('#shorts') ||
+            titleLower.includes('#short') ||
+            descLower.includes('#shorts') ||
+            descLower.includes('#short') ||
+            titleLower.startsWith('shorts/');
+
+          if (!isShort) {
+            videos.push({
+              id: videoId,
+              title: title
+            });
+
+            if (videos.length >= 2) break;
+          }
+        }
+
+        if (videos.length === 0) {
+          console.log('No regular videos found, using fallback.');
+
+          videos.push(
+            {
+              id: 'lK19ZXGPN-o',
+              title: 'Unlocking *NEW FREE* Legendary as F2P Early || REALRJPLAYS || CoDM'
+            },
+            {
+              id: 'JLEqELqfOwU',
+              title: 'Why You’re Still a Noob (and how to fix it)'
+            }
+          );
+        }
+
+        fs.writeFileSync(
+          'videos.json',
+          JSON.stringify(videos, null, 2)
+        );
+
+        console.log('Successfully updated videos.json');
+        console.log(videos);
+
+      } catch (err) {
+        console.error('Failed to fetch YouTube RSS feed:', err);
+        process.exit(1);
+      }
+    }
+
+    fetchVideos();
+    EOF
+
+    node fetch-videos.js
+
+- name: Commit and Push Updated Feed
+  run: |
+    git config user.name "github-actions[bot]"
+    git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+    git add videos.json
+
+    git diff --staged --quiet || git commit -m "Update YouTube feed"
+
+    git push
