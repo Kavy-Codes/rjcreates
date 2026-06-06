@@ -1,117 +1,158 @@
-- name: Checkout Repository
-  uses: actions/checkout@v4
+name: Update YouTube Videos Feed
 
-- name: Fetch YouTube XML and Parse to JSON
-  run: |
-    cat > fetch-videos.js << 'EOF'
-    const fs = require('fs');
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
 
-    async function fetchVideos() {
-      const channelId = 'UC0snrsML_aXCSx9I7Gaa-mA';
-      const url = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}&t=${Date.now()}`;
+permissions:
+  contents: write
 
-      console.log('Fetching live YouTube RSS feed...');
+jobs:
+  update-feed:
+    runs-on: ubuntu-latest
 
-      try {
-        const res = await fetch(url, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-        const data = await res.text();
+      - name: Fetch Latest 2 Long Videos
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
 
-        const entries = data.split('<entry>');
-        const videos = [];
+          const CHANNEL_ID = 'UC0snrsML_aXCSx9I7Gaa-mA';
 
-        for (let i = 1; i < entries.length; i++) {
-          const entry = entries[i];
+          async function getDuration(videoId) {
+            try {
+              const html = await fetch(
+                `https://www.youtube.com/watch?v=${videoId}`,
+                {
+                  headers: {
+                    'User-Agent':
+                      'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                  }
+                }
+              ).then(r => r.text());
 
-          const idMatch = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
-          if (!idMatch) continue;
+              const match = html.match(
+                /"lengthSeconds":"(\d+)"/
+              );
 
-          const videoId = idMatch[1];
-
-          const titleMatch = entry.match(/<title>([^<]+)<\/title>/);
-          const title = titleMatch ? titleMatch[1].trim() : '';
-
-          const linkMatch = entry.match(/<link[^>]+href="([^"]+)"/);
-          const link = linkMatch ? linkMatch[1] : '';
-
-          const descMatch =
-            entry.match(/<media:description>([\s\S]*?)<\/media:description>/) ||
-            entry.match(/<description>([\s\S]*?)<\/description>/);
-
-          const desc = descMatch ? descMatch[1] : '';
-
-          const titleLower = title.toLowerCase();
-          const descLower = desc.toLowerCase();
-
-          const isShort =
-            link.includes('/shorts/') ||
-            titleLower.includes('#shorts') ||
-            titleLower.includes('#short') ||
-            descLower.includes('#shorts') ||
-            descLower.includes('#short') ||
-            titleLower.startsWith('shorts/');
-
-          if (!isShort) {
-            videos.push({
-              id: videoId,
-              title: title
-            });
-
-            if (videos.length >= 2) break;
-          }
-        }
-
-        if (videos.length === 0) {
-          console.log('No regular videos found, using fallback.');
-
-          videos.push(
-            {
-              id: 'lK19ZXGPN-o',
-              title: 'Unlocking *NEW FREE* Legendary as F2P Early || REALRJPLAYS || CoDM'
-            },
-            {
-              id: 'JLEqELqfOwU',
-              title: 'Why You’re Still a Noob (and how to fix it)'
+              return match ? Number(match[1]) : null;
+            } catch {
+              return null;
             }
-          );
-        }
+          }
 
-        fs.writeFileSync(
-          'videos.json',
-          JSON.stringify(videos, null, 2)
-        );
+          async function main() {
+            const rssUrl =
+              `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}&t=${Date.now()}`;
 
-        console.log('Successfully updated videos.json');
-        console.log(videos);
+            console.log('Fetching RSS...');
 
-      } catch (err) {
-        console.error('Failed to fetch YouTube RSS feed:', err);
-        process.exit(1);
-      }
-    }
+            const xml = await fetch(rssUrl, {
+              cache: 'no-store'
+            }).then(r => r.text());
 
-    fetchVideos();
-    EOF
+            const entries = xml.split('<entry>').slice(1);
 
-    node fetch-videos.js
+            const uploads = [];
 
-- name: Commit and Push Updated Feed
-  run: |
-    git config user.name "github-actions[bot]"
-    git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            for (const entry of entries) {
+              const idMatch = entry.match(
+                /<yt:videoId>([^<]+)<\/yt:videoId>/
+              );
 
-    git add videos.json
+              const titleMatch = entry.match(
+                /<title>([^<]+)<\/title>/
+              );
 
-    git diff --staged --quiet || git commit -m "Update YouTube feed"
+              if (!idMatch) continue;
 
-    git push
+              uploads.push({
+                id: idMatch[1],
+                title: titleMatch ? titleMatch[1] : ''
+              });
+            }
+
+            console.log(
+              `Found ${uploads.length} uploads`
+            );
+
+            const videos = [];
+
+            for (const upload of uploads.slice(0, 15)) {
+              console.log(
+                `Checking ${upload.title}`
+              );
+
+              const duration =
+                await getDuration(upload.id);
+
+              console.log(
+                `Duration: ${duration}s`
+              );
+
+              if (
+                duration &&
+                duration > 90
+              ) {
+                videos.push({
+                  id: upload.id,
+                  title: upload.title
+                });
+
+                console.log(
+                  `Added: ${upload.title}`
+                );
+
+                if (videos.length >= 2)
+                  break;
+              }
+            }
+
+            if (videos.length === 0) {
+              throw new Error(
+                'No long-form videos found.'
+              );
+            }
+
+            fs.writeFileSync(
+              'videos.json',
+              JSON.stringify(
+                videos,
+                null,
+                2
+              )
+            );
+
+            console.log(
+              'Saved videos.json:',
+              videos
+            );
+          }
+
+          main().catch(err => {
+            console.error(err);
+            process.exit(1);
+          });
+          EOF
+
+      - name: Commit Changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet videos.json; then
+            echo "No changes."
+          else
+            git add videos.json
+            git commit -m "Update latest videos"
+            git push
+          fi
