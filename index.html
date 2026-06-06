@@ -2,345 +2,910 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RJ CREATES | Link in Bio</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RJ CREATES | Premium Creator Hub</title>
+    
+    <!-- Google Fonts: Elegant Playfair Display & Clean Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Pro Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* CORE THEME VARIABLES */
         :root {
-            --theme-base: #8B4513; /* Default Accent Color */
-            --theme-darker: #4A250A; /* Auto-calculated by JS */
-            --theme-glow: rgba(139, 69, 19, 0.4);
-            
-            /* Light Mode Defaults */
-            --bg-solid: #FDFBF7;
-            --text-main: #1A1A1A;
-            --text-muted: #555555;
-            --glass-bg: rgba(255, 255, 255, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.8);
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            /* Premium Minimalist Light Mode (Crisp, Creamy, High-End) */
+            --bg-solid: #FAF9F6;
+            --text-main: #111111;
+            --text-muted: #666666;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(17, 17, 17, 0.08);
+            --shadow: 0 10px 30px rgba(17, 17, 17, 0.03), 0 1px 3px rgba(17, 17, 17, 0.02);
+            --theme-base: #111111;
+            --theme-glow: rgba(17, 17, 17, 0.02);
+            --theme-border-glow: rgba(17, 17, 17, 0.12);
+            --theme-contrast: #FFFFFF;
+            --icon-color: #111111;
+            --skeleton-base: rgba(0, 0, 0, 0.04);
+            --skeleton-shine: rgba(0, 0, 0, 0.08);
+            --control-btn-bg: rgba(255, 255, 255, 0.85);
+            --orb-color: 230, 224, 215; /* Soft, warm champagne light-mode ambient glow */
         }
 
-        /* Dark Mode Overrides */
         body.dark-mode {
+            /* Premium Obsidian Dark Mode (Sleek, Atmospheric, High Contrast) */
             --bg-solid: #0A0A0A;
             --text-main: #FFFFFF;
-            --text-muted: #A0A0A0;
-            --glass-bg: rgba(20, 20, 20, 0.5);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --text-muted: #888888;
+            --glass-bg: rgba(18, 18, 18, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.09);
+            --shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+            --theme-base: #FFFFFF;
+            --theme-glow: rgba(255, 255, 255, 0.06);
+            --theme-border-glow: rgba(255, 255, 255, 0.25);
+            --theme-contrast: #111111;
+            --icon-color: #FFFFFF;
+            --skeleton-base: rgba(255, 255, 255, 0.04);
+            --skeleton-shine: rgba(255, 255, 255, 0.08);
+            --control-btn-bg: rgba(20, 20, 20, 0.85);
+            --orb-color: 255, 255, 255; /* Crispy ice white ambient dark-mode glow */
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.4s, color 0.4s; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-tap-highlight-color: transparent; 
+        }
 
         body { 
             font-family: 'Poppins', sans-serif; 
             color: var(--text-main); 
-            min-height: 100vh;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            position: relative;
-            overflow-x: hidden;
             background-color: var(--bg-solid);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
 
-        /* =========================================
-           PREMIUM CSS MESH/AURORA BACKGROUND 
-           ========================================= */
-        .bg-mesh {
+        #bg-canvas {
             position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
             z-index: -1;
-            overflow: hidden;
+            pointer-events: none;
+            opacity: 0.85;
+            will-change: transform;
+            transform: translate3d(0,0,0);
+        }
+
+        .view {
+            display: none;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 120px 20px 40px;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
         
-        .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.6;
-            animation: float 20s infinite alternate ease-in-out;
+        .view.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        .orb-1 {
-            width: 60vmax; height: 60vmax;
-            background: var(--theme-base);
-            top: -20vmax; left: -20vmax;
-        }
-
-        .orb-2 {
-            width: 50vmax; height: 50vmax;
-            background: var(--theme-darker);
-            bottom: -10vmax; right: -10vmax;
-            animation-delay: -10s;
-        }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(10vmax, 10vmax) scale(1.2); }
-        }
-
-        /* =========================================
-           TOP CONTROLS
-           ========================================= */
         .top-controls {
-            position: absolute;
-            top: 25px; right: 25px;
+            position: fixed;
+            top: 24px;
+            right: 24px;
             display: flex;
-            gap: 15px;
-            z-index: 10;
+            gap: 12px;
+            z-index: 100;
         }
 
         .icon-btn {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
+            background: var(--control-btn-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             color: var(--text-main);
-            width: 45px; height: 45px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
             cursor: pointer;
             box-shadow: var(--shadow);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s, background 0.3s;
         }
 
         .icon-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 10px 25px var(--theme-glow);
+            transform: scale(1.08);
+            box-shadow: 0 10px 25px var(--theme-border-glow);
         }
 
-        .color-picker-wrapper { position: relative; }
-        .color-picker-wrapper input[type="color"] {
-            position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; top: 0; left: 0;
+        .icon-btn:active {
+            transform: scale(0.94);
         }
 
-        /* =========================================
-           MAIN LAYOUT
-           ========================================= */
-        .container { 
-            max-width: 500px; 
-            width: 100%; 
-            padding: 80px 20px 40px; 
-            text-align: center; 
+        .avatar-container {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 24px;
+        }
+        
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 2px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            z-index: 2;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-fallback {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .avatar-glow {
+            position: absolute;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--theme-border-glow) 0%, transparent 70%);
+            filter: blur(14px);
+            animation: pulseGlow 4s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 1;
+            opacity: 0.8;
+            transition: background 0.5s ease;
         }
 
+        @keyframes pulseGlow {
+            0% { opacity: 0.5; transform: scale(0.95); }
+            100% { opacity: 0.9; transform: scale(1.05); }
+        }
+
+        .header-text {
+            text-align: center;
+            margin-bottom: 40px;
+        }
         h1 { 
             font-family: 'Playfair Display', serif;
-            font-size: 3rem; 
-            font-weight: 700;
-            margin-bottom: 5px; 
-            background: linear-gradient(135deg, var(--text-main), var(--theme-base));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
         }
-
-        p.subtitle { 
-            font-size: 0.95rem;
+        p.subtitle {
+            font-size: 0.85rem;
             color: var(--text-muted);
-            margin-bottom: 40px; 
-            letter-spacing: 0.5px;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
         }
 
-        /* =========================================
-           GLASSMORPHIC BUTTONS
-           ========================================= */
-        .links-wrapper { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
-        .row-split { display: flex; gap: 16px; }
+        .links-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 45px;
+        }
+        
+        .row-split {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            width: 100%;
+        }
 
         .btn { 
-            display: flex; align-items: center; justify-content: center; gap: 12px;
-            text-decoration: none; 
-            border-radius: 16px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            border-radius: 18px;
             font-weight: 500;
-            font-size: 1rem;
+            font-size: 1.05rem;
             padding: 18px;
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             color: var(--text-main);
             box-shadow: var(--shadow);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
-            overflow: hidden;
+            
+            opacity: 0;
+            transform: translateY(15px) scale(0.98);
+            
+            animation: breatheGlow 4s infinite alternate ease-in-out;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s, border-color 0.3s, background 0.3s;
         }
 
-        /* Subtle left border accent using the chosen theme color */
+        @keyframes breatheGlow {
+            0% {
+                box-shadow: var(--shadow), 0 0 4px var(--theme-glow);
+                border-color: var(--glass-border);
+            }
+            100% {
+                box-shadow: var(--shadow), 0 0 12px var(--theme-border-glow);
+                border-color: var(--theme-base);
+            }
+        }
+
+        .btn.nav-btn {
+            justify-content: flex-start;
+            padding: 18px 24px;
+        }
+
         .btn::before {
             content: '';
             position: absolute;
-            left: 0; top: 0; bottom: 0; width: 4px;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0px;
             background: var(--theme-base);
-            transition: width 0.3s;
+            border-radius: 18px 0 0 18px;
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 0;
         }
 
         .btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 35px var(--theme-glow);
+            box-shadow: var(--shadow), 0 12px 30px var(--theme-border-glow);
             border-color: var(--theme-base);
+            transform: translateY(-3px);
+        }
+        
+        .btn:hover::before {
+            width: 6px;
+        }
+        
+        .btn:active {
+            transform: scale(0.96) translateY(0) !important;
         }
 
-        .btn:hover::before { width: 8px; }
+        .btn i { 
+            font-size: 1.35rem;
+            width: 26px;
+            text-align: center;
+            color: var(--text-main);
+            transition: color 0.4s;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn span {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .btn.btn-accent {
+            background: var(--theme-base);
+            color: var(--theme-contrast);
+            border: none;
+            font-weight: 600;
+        }
+        .btn.btn-accent i {
+            color: var(--theme-contrast);
+        }
+        .btn.btn-accent::before {
+            display: none;
+        }
 
-        .btn i { font-size: 1.3rem; color: var(--theme-base); }
-        .row-split .btn { flex: 1; padding: 18px 10px; font-size: 0.9rem; }
+        .row-split .btn {
+            width: 100%;
+            padding: 16px 10px;
+            font-size: 0.95rem;
+        }
 
-        /* =========================================
-           VIDEO SECTION
-           ========================================= */
-        h3.section-title { 
+        .cascade-in {
+            animation: elasticUpFade 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes elasticUpFade {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        h3.section-title {
             font-family: 'Playfair Display', serif;
             font-size: 1.8rem;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+        
+        .video-container {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
 
-        .video-container { display: flex; flex-direction: column; gap: 20px; }
+        .video-card {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            background: #000;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* Video Player Wrapper to support iframe injection */
+        .video-player-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Elegant fallback card when a video has restrictive rights (Error 150/153) */
+        .video-fallback-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            background-size: cover;
+            background-position: center;
+            z-index: 5;
+        }
+
+        .video-fallback-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1;
+        }
+
+        .video-fallback-content {
+            position: relative;
+            z-index: 2;
+            color: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            max-width: 85%;
+        }
+
+        .video-fallback-content i {
+            font-size: 2.2rem;
+            color: #FF0000;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.4));
+        }
+
+        .video-fallback-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-fallback-btn {
+            background: #FF0000;
+            color: #FFFFFF;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.45);
+            transition: transform 0.2s;
+            margin-top: 4px;
+        }
+
+        .video-fallback-btn:active {
+            transform: scale(0.95);
+        }
+
+        .skeleton {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-shine) 50%, var(--skeleton-base) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+            border-radius: 20px;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: -200% 0;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            transition: bottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast i {
+            color: var(--theme-base);
+        }
+        .toast.show {
+            bottom: 50px;
+        }
     </style>
 </head>
 <body>
 
-<div class="bg-mesh">
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-</div>
+<canvas id="bg-canvas"></canvas>
 
 <div class="top-controls">
-    <div class="color-picker-wrapper icon-btn" title="Pick Theme Color">
-        <i class="fa-solid fa-palette"></i>
-        <input type="color" id="theme-color" value="#8B4513">
-    </div>
+    <button class="icon-btn" onclick="shareProfile()" title="Share Profile">
+        <i class="fa-solid fa-share-nodes"></i>
+    </button>
     <button id="theme-toggle" class="icon-btn" title="Toggle Dark/Light Mode">
         <i class="fa-solid fa-moon" id="theme-icon"></i>
     </button>
 </div>
 
-<div class="container">
-    <h1>RJ CREATES</h1>
-    <p class="subtitle">Content Creator | Mobile Gamer | Editor</p>
+<!-- =========================================
+     HOME VIEW (SPA VIEW 1)
+     ========================================= -->
+<div id="home-view" class="view active">
+    
+    <!-- Utilizing verbatim image name "channels4_profile.jpg" -->
+    <div class="avatar-container stagger-item">
+        <div class="avatar-glow"></div>
+        <div class="avatar">
+            <img src="channels4_profile.jpg" alt="RJ PLAYS" class="avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span class="avatar-fallback" style="display:none;">RJ</span>
+        </div>
+    </div>
+
+    <div class="header-text stagger-item">
+        <h1>RJ CREATES</h1>
+        <p class="subtitle">Creator • Mobile Gamer • Editor</p>
+    </div>
 
     <div class="links-wrapper">
         <div class="row-split">
-            <a href="https://youtube.com/@realrjplays" class="btn" target="_blank">
-                <i class="fa-brands fa-youtube"></i> RJ PLAYS
+            <a href="https://youtube.com/@realrjplays" class="btn stagger-item" target="_blank">
+                <i class="fa-brands fa-youtube"></i> <span>RJ PLAYS</span>
             </a>
-            <a href="https://youtube.com/@RJEDITZZZ" class="btn" target="_blank">
-                <i class="fa-brands fa-youtube"></i> RJ EDITZZZ
+            <a href="https://youtube.com/@RJEDITZZZ" class="btn stagger-item" target="_blank">
+                <i class="fa-brands fa-youtube"></i> <span>RJ EDITZZZ</span>
             </a>
         </div>
-        <a href="https://www.instagram.com/realrjplaysyt?igsh=MThzdHppZ3RibXB3aA==" class="btn" target="_blank">
-            <i class="fa-brands fa-instagram"></i> RJ PLAYS (Instagram)
+        <a href="https://www.instagram.com/realrjplaysyt?igsh=MThzdHppZ3RibXB3aA==" class="btn stagger-item" target="_blank">
+            <i class="fa-brands fa-instagram"></i> <span>RJ PLAYS</span>
         </a>
-        <a href="https://discord.gg/jSSKFNknZS" class="btn" target="_blank">
-            <i class="fa-brands fa-discord"></i> RJ's HQ (Discord)
+        <a href="https://discord.gg/jSSKFNknZS" class="btn stagger-item" target="_blank">
+            <i class="fa-brands fa-discord"></i> <span>RJ's HQ</span>
         </a>
-        <a href="Creation.html" class="btn">
-            <i class="fa-solid fa-layer-group"></i> Other Creations
+        <a href="#" class="btn btn-accent stagger-item" onclick="switchView('creations-view'); return false;">
+            <i class="fa-solid fa-layer-group"></i> <span>View Other Creations</span>
         </a>
     </div>
 
-    <h3 class="section-title">Latest Videos</h3>
+    <h3 class="section-title stagger-item">Latest Videos</h3>
     <div id="video-container" class="video-container">
-        <p style="color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Fetching latest videos...</p>
+        <!-- Loader Skeletons -->
+        <div class="video-card stagger-item"><div class="skeleton"></div></div>
+        <div class="video-card stagger-item"><div class="skeleton"></div></div>
     </div>
 </div>
 
-<script>
-    // 1. HELPER: Calculate Darker Shade
-    function shadeColor(color, percent) {
-        let R = parseInt(color.substring(1,3),16);
-        let G = parseInt(color.substring(3,5),16);
-        let B = parseInt(color.substring(5,7),16);
-        R = parseInt(R * (100 + percent) / 100);
-        G = parseInt(G * (100 + percent) / 100);
-        B = parseInt(B * (100 + percent) / 100);
-        R = (R<255)?R:255; G = (G<255)?G:255; B = (B<255)?B:255;
-        let RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
-        let GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
-        let BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
-        return "#"+RR+GG+BB;
-    }
+<!-- =========================================
+     CREATIONS VIEW (SPA VIEW 2)
+     ========================================= -->
+<div id="creations-view" class="view">
+    
+    <div class="header-text stagger-item">
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-bottom: 8px;">Other Creations</h2>
+        <p class="subtitle">Explore the extended network</p>
+    </div>
 
-    // 2. THEME INITIALIZATION
+    <div class="links-wrapper">
+        <a href="https://youtube.com/@jackcopycatguy?si=bc0UCHZu2ymy0UY-" class="btn nav-btn stagger-item" target="_blank">
+            <i class="fa-brands fa-youtube"></i> <span>Copy Cat Guy</span>
+        </a>
+        <a href="https://youtube.com/@sacredspirituallyrical?si=tXnMU4PTB7t0uAIT" class="btn nav-btn stagger-item" target="_blank">
+            <i class="fa-brands fa-youtube"></i> <span>Spiritual Editor</span>
+        </a>
+        <a href="https://youtube.com/@cclyricaleditor?si=BIGari7OoS6KRKRj" class="btn nav-btn stagger-item" target="_blank">
+            <i class="fa-brands fa-youtube"></i> <span>Lyrical Editor</span>
+        </a>
+        <a href="https://www.instagram.com/sacredspirituallyrical?igsh=MTRvZ2dqZHNjc3UwcQ==" class="btn nav-btn stagger-item" target="_blank">
+            <i class="fa-brands fa-instagram"></i> <span>Spiritual Editor</span>
+        </a>
+        <a href="https://www.instagram.com/realrjeditzzz?igsh=MTJyY3lwaHd6OHJuMA==" class="btn nav-btn stagger-item" target="_blank">
+            <i class="fa-brands fa-instagram"></i> <span>RJ EDITZZZ</span>
+        </a>
+        <a href="https://www.instagram.com/sunzyakki?igsh=MWFsdzJnYTdkaGw1cw==" class="btn nav-btn stagger-item" target="_blank">
+            <i class="fa-brands fa-instagram"></i> <span>Copy Cat Guy</span>
+        </a>
+    </div>
+
+    <div style="text-align: center;" class="stagger-item">
+        <a href="#" class="icon-btn" style="display: inline-flex; width: auto; padding: 0 26px; border-radius: 30px; gap: 10px; font-weight: 500;" onclick="switchView('home-view'); return false;">
+            <i class="fa-solid fa-arrow-left"></i> Back to Home
+        </a>
+    </div>
+</div>
+
+<div id="toast" class="toast"><i class="fa-solid fa-circle-check"></i> Link copied to clipboard!</div>
+
+<!-- Loading Official YouTube Iframe API -->
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
     const root = document.documentElement;
     const body = document.body;
     const toggleBtn = document.getElementById('theme-toggle');
     const themeIcon = document.getElementById('theme-icon');
-    const colorPicker = document.getElementById('theme-color');
 
-    // Load Dark Mode
-    if(localStorage.getItem('theme') === 'dark') {
+    // Default Theme Handling (Standard Black & White System)
+    const isDarkStorage = localStorage.getItem('theme') !== 'light'; 
+    if (isDarkStorage) {
         body.classList.add('dark-mode');
-        if(themeIcon) themeIcon.classList.replace('fa-moon', 'fa-sun');
+        themeIcon.classList.replace('fa-moon', 'fa-sun');
+    } else {
+        body.classList.remove('dark-mode');
+        themeIcon.classList.replace('fa-sun', 'fa-moon');
     }
 
-    // Load Custom Color
-    const savedColor = localStorage.getItem('themeColor');
-    if (savedColor) {
-        if(colorPicker) colorPicker.value = savedColor;
-        root.style.setProperty('--theme-base', savedColor);
-        root.style.setProperty('--theme-darker', shadeColor(savedColor, -40));
-        root.style.setProperty('--theme-glow', hexToRgba(savedColor, 0.4));
+    toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+        const isDark = body.classList.contains('dark-mode');
+        themeIcon.classList.replace(isDark ? 'fa-moon' : 'fa-sun', isDark ? 'fa-sun' : 'fa-moon');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+
+    // --- ANIMATED BACKGROUND ---
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
+
+    window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    });
+
+    class AmbientOrb {
+        constructor() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 0.8;
+            this.vy = (Math.random() - 0.5) * 0.8;
+            this.size = Math.min(width, height) * (0.35 + Math.random() * 0.15);
+        }
+
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+
+            if (this.x < -this.size || this.x > width + this.size) this.vx *= -1;
+            if (this.y < -this.size || this.y > height + this.size) this.vy *= -1;
+        }
+
+        draw() {
+            const orbColor = getComputedStyle(root).getPropertyValue('--orb-color').trim();
+            
+            ctx.beginPath();
+            const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+            gradient.addColorStop(0, `rgba(${orbColor}, 0.12)`);
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gradient;
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
     }
 
-    // Convert Hex to RGBA for shadows
-    function hexToRgba(hex, alpha) {
-        let r = parseInt(hex.slice(1, 3), 16),
-            g = parseInt(hex.slice(3, 5), 16),
-            b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
+    const orbs = [new AmbientOrb(), new AmbientOrb(), new AmbientOrb()];
 
-    // 3. EVENT LISTENERS
-    if(toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            const isDark = body.classList.contains('dark-mode');
-            themeIcon.classList.replace(isDark ? 'fa-moon' : 'fa-sun', isDark ? 'fa-sun' : 'fa-moon');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    function animateBg() {
+        ctx.clearRect(0, 0, width, height);
+        orbs.forEach(orb => {
+            orb.update();
+            orb.draw();
+        });
+        requestAnimationFrame(animateBg);
+    }
+    animateBg();
+
+    function triggerCascade(viewId) {
+        const items = document.querySelectorAll(`#${viewId} .stagger-item`);
+        items.forEach((item, index) => {
+            item.classList.remove('cascade-in');
+            void item.offsetWidth; 
+            item.style.animationDelay = `${index * 0.08}s`;
+            item.classList.add('cascade-in');
         });
     }
 
-    if(colorPicker) {
-        colorPicker.addEventListener('input', (e) => {
-            const color = e.target.value;
-            root.style.setProperty('--theme-base', color);
-            root.style.setProperty('--theme-darker', shadeColor(color, -40));
-            root.style.setProperty('--theme-glow', hexToRgba(color, 0.4));
-            localStorage.setItem('themeColor', color);
+    function switchView(viewId) {
+        document.querySelectorAll('.view').forEach(view => {
+            view.classList.remove('active');
+            view.style.display = 'none'; 
         });
+        const targetView = document.getElementById(viewId);
+        targetView.style.display = 'block';
+        setTimeout(() => targetView.classList.add('active'), 10);
+        triggerCascade(viewId);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // 4. YOUTUBE API FETCHER
-    const CHANNEL_ID = 'UC0snrsML_aXCSx9I7Gaa-mA'; 
-    const RSS_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
-    const API_URL = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(RSS_URL)}`;
+    function shareProfile() {
+        const url = window.location.href;
+        const dummy = document.createElement('input');
+        document.body.appendChild(dummy);
+        dummy.value = url;
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
 
-    fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-            const container = document.getElementById('video-container');
-            container.innerHTML = ''; 
-            if (data.items && data.items.length > 0) {
-                const latestVideos = data.items.slice(0, 2);
-                latestVideos.forEach(video => {
-                    const videoId = video.link.split('v=')[1];
-                    const videoHtml = `
-                        <div style="position: relative; padding-bottom: 56.25%; height: 0; border-radius: 16px; overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--glass-border); background: #000;">
-                            <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"></iframe>
-                        </div>`;
-                    container.innerHTML += videoHtml;
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // --- STREAMING_CHUNK: YT API & RESILIENT PLAYER CONTROLLER ---
+    const CHANNEL_ID = 'UC0snrsML_aXCSx9I7Gaa-mA';
+    const fallbackVideos = [
+        { id: 'lK19ZXGPN-o', title: 'Unlocking *NEW FREE* Legendary as F2P Early || REALRJPLAYS || CoDM' },
+        { id: 'JLEqELqfOwU', title: 'Why You’re Still a Noob (and how to fix it)' }
+    ]; 
+    
+    // Dynamic metadata cache store to accurately hold titles and thumbnails
+    const videoMetadataCache = {};
+    let ytApiReady = false;
+    let pendingVideosToLoad = null;
+
+    // Seeding our cache with reliable defaults immediately
+    fallbackVideos.forEach(v => {
+        videoMetadataCache[v.id] = {
+            title: v.title,
+            thumbnail: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`
+        };
+    });
+
+    // This runs automatically when the YouTube script API script finishes loading
+    window.onYouTubeIframeAPIReady = () => {
+        ytApiReady = true;
+        if (pendingVideosToLoad) {
+            renderPlayers(pendingVideosToLoad);
+        }
+    };
+
+    function loadVideoContainer(videoIds) {
+        if (ytApiReady) {
+            renderPlayers(videoIds);
+        } else {
+            pendingVideosToLoad = videoIds;
+        }
+    }
+
+    function renderPlayers(videoIds) {
+        const container = document.getElementById('video-container');
+        container.innerHTML = ''; 
+
+        videoIds.forEach((videoId, index) => {
+            const card = document.createElement('div');
+            card.className = 'video-card';
+            card.style.animationDelay = `${index * 0.15}s`;
+
+            // Inner player container
+            const playerWrapper = document.createElement('div');
+            playerWrapper.className = 'video-player-wrapper';
+            const playerTargetId = `yt-player-target-${videoId}-${index}`;
+            playerWrapper.id = playerTargetId;
+
+            card.appendChild(playerWrapper);
+            container.appendChild(card);
+
+            // Instantiate native Player
+            setTimeout(() => {
+                new YT.Player(playerTargetId, {
+                    height: '100%',
+                    width: '100%',
+                    videoId: videoId,
+                    playerVars: {
+                        'playsinline': 1,
+                        'rel': 0,
+                        'modestbranding': 1
+                    },
+                    events: {
+                        'onError': (event) => {
+                            // Catch embed errors: 101/150/153 are typical restricted/unplayable codes
+                            if (event.data === 101 || event.data === 150 || event.data === 2 || event.data === 5 || event.data === 100) {
+                                handlePlayerError(card, videoId);
+                            }
+                        }
+                    }
                 });
-            } else { container.innerHTML = '<p>No videos found.</p>'; }
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById('video-container').innerHTML = '<p>Could not load videos.</p>';
+                card.classList.add('cascade-in');
+            }, 50);
         });
+    }
+
+    // Morph the card dynamically into a premium external redirection card if error triggers
+    function handlePlayerError(cardElement, videoId) {
+        const wrapper = cardElement.querySelector('.video-player-wrapper') || cardElement;
+        
+        // Grab title and thumbnail securely from cache
+        const metadata = videoMetadataCache[videoId] || {
+            title: "Playback Restricted on External Sites",
+            thumbnail: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
+        };
+        
+        const fallbackHtml = `
+            <div class="video-fallback-card" style="background-image: url('${metadata.thumbnail}')">
+                <div class="video-fallback-overlay"></div>
+                <div class="video-fallback-content">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span class="video-fallback-title">${metadata.title}</span>
+                    <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" class="video-fallback-btn">
+                        <i class="fa-brands fa-youtube"></i> Watch on YouTube
+                    </a>
+                </div>
+            </div>
+        `;
+        wrapper.innerHTML = fallbackHtml;
+    }
+
+    // XML parsing utility to fetch feed videos while filtering out YouTube Shorts
+    function parseFeedAndFilterShorts(xmlText) {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        const entries = xmlDoc.getElementsByTagName("entry");
+        const filteredVideos = [];
+
+        for (let i = 0; i < entries.length; i++) {
+            if (filteredVideos.length >= 2) break; // We only need the 2 most recent traditional videos
+
+            const titleNode = entries[i].getElementsByTagName("title")[0];
+            const descNode = entries[i].getElementsByTagName("media:description")[0] || entries[i].getElementsByTagName("description")[0];
+            const videoIdNode = entries[i].getElementsByTagName("yt:videoId")[0];
+            const linkNode = entries[i].getElementsByTagName("link")[0];
+
+            if (videoIdNode && videoIdNode.textContent) {
+                const videoId = videoIdNode.textContent;
+                const titleText = titleNode ? titleNode.textContent : "";
+                const descText = descNode ? descNode.textContent.toLowerCase() : "";
+                const linkHref = linkNode ? linkNode.getAttribute("href") : "";
+
+                // Heuristic detection: YouTube Shorts almost always contain #shorts, #short, or /shorts/ links
+                const isShort = titleText.toLowerCase().includes('#shorts') || 
+                                titleText.toLowerCase().includes('#short') || 
+                                descText.includes('#shorts') || 
+                                descText.includes('#short') || 
+                                titleText.toLowerCase().startsWith('shorts/') ||
+                                titleText.toLowerCase().includes('youtube shorts') ||
+                                (linkHref && linkHref.includes('/shorts/'));
+
+                if (!isShort) {
+                    filteredVideos.push({ id: videoId, title: titleText });
+                }
+            }
+        }
+        return filteredVideos;
+    }
+
+    // Trigger sequential loaders: Feed.json (schedule-updated via GitHub Action) -> Proxy CORS Feed -> Fallbacks
+    fetch('./videos.json')
+        .then(res => {
+            if (!res.ok) throw new Error('Local video file not found');
+            return res.json();
+        })
+        .then(videos => {
+            if (videos && videos.length > 0) {
+                const parsedIds = [];
+                videos.forEach(v => {
+                    const id = typeof v === 'object' ? v.id : v;
+                    const title = typeof v === 'object' ? v.title : 'Latest Video';
+                    parsedIds.push(id);
+                    videoMetadataCache[id] = {
+                        title: title,
+                        thumbnail: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
+                    };
+                });
+                loadVideoContainer(parsedIds);
+            } else {
+                throw new Error('Empty JSON feed');
+            }
+        })
+        .catch(() => {
+            // Live CORS backup parsing using live proxy fetcher
+            const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`;
+
+            fetch(proxyUrl)
+                .then(res => res.json())
+                .then(data => {
+                    const parsedVideos = parseFeedAndFilterShorts(data.contents);
+                    if (parsedVideos.length > 0) {
+                        const parsedIds = [];
+                        parsedVideos.forEach(v => {
+                            parsedIds.push(v.id);
+                            videoMetadataCache[v.id] = {
+                                title: v.title,
+                                thumbnail: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`
+                            };
+                        });
+                        loadVideoContainer(parsedIds);
+                    } else {
+                        throw new Error('No traditional videos parsed');
+                    }
+                })
+                .catch(() => {
+                    // Failover defaults to known-good embed playable video IDs
+                    const parsedIds = fallbackVideos.map(v => v.id);
+                    loadVideoContainer(parsedIds);
+                });
+        });
+
+    window.onload = () => triggerCascade('home-view');
 </script>
 </body>
 </html>
