@@ -17,11 +17,11 @@
             --text-main: #111111;
             --text-muted: #666666;
             --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(17, 17, 17, 0.08);
-            --shadow: 0 10px 30px rgba(17, 17, 17, 0.03), 0 1px 3px rgba(17, 17, 17, 0.02);
+            --glass-border: rgba(17, 17, 17, 0.22); /* Enhanced crisp black border */
+            --shadow: 0 10px 24px rgba(17, 17, 17, 0.16), 0 3px 8px rgba(17, 17, 17, 0.12); /* Stronger, pronounced black drop shadow */
             --theme-base: #111111;
-            --theme-glow: rgba(17, 17, 17, 0.02);
-            --theme-border-glow: rgba(17, 17, 17, 0.12);
+            --theme-glow: rgba(17, 17, 17, 0.04);
+            --theme-border-glow: rgba(17, 17, 17, 0.18);
             --theme-contrast: #FFFFFF;
             --icon-color: #111111;
             --skeleton-base: rgba(0, 0, 0, 0.04);
@@ -108,7 +108,7 @@
             background: var(--control-btn-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            border: 2px solid var(--glass-border); /* Distinct border outline */
             color: var(--text-main);
             width: 48px;
             height: 48px;
@@ -144,7 +144,7 @@
             border-radius: 50%;
             background: var(--glass-bg);
             backdrop-filter: blur(12px);
-            border: 2px solid var(--glass-border);
+            border: 3px solid var(--text-main); /* Premium bold dark outline border */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -234,7 +234,7 @@
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+            border: 2px solid var(--glass-border); /* Dynamic thick crisp border */
             color: var(--text-main);
             box-shadow: var(--shadow);
             position: relative;
