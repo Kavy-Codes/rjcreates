@@ -17,8 +17,8 @@
             --text-main: #111111;
             --text-muted: #666666;
             --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(17, 17, 17, 0.22); /* Enhanced crisp black border */
-            --shadow: 0 10px 24px rgba(17, 17, 17, 0.16), 0 3px 8px rgba(17, 17, 17, 0.12); /* Stronger, pronounced black drop shadow */
+            --glass-border: rgba(17, 17, 17, 0.4); /* Enhanced punchy black border */
+            --shadow: 0 12px 30px rgba(17, 17, 17, 0.25), 0 4px 10px rgba(17, 17, 17, 0.15); /* Stronger pronounced black shadow */
             --theme-base: #111111;
             --theme-glow: rgba(17, 17, 17, 0.04);
             --theme-border-glow: rgba(17, 17, 17, 0.18);
@@ -289,6 +289,14 @@
             transform: scale(0.96) translateY(0) !important;
         }
 
+        /* Tactical Mobile Tap States */
+        .tapped {
+            transform: scale(0.92) !important;
+            box-shadow: 0 2px 5px var(--theme-glow) !important;
+            border-color: var(--theme-base) !important;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
         .btn i { 
             font-size: 1.35rem;
             width: 26px;
@@ -500,7 +508,7 @@
 <canvas id="bg-canvas"></canvas>
 
 <div class="top-controls">
-    <button class="icon-btn" onclick="shareProfile()" title="Share Profile">
+    <button class="icon-btn" data-action="share" title="Share Profile">
         <i class="fa-solid fa-share-nodes"></i>
     </button>
     <button id="theme-toggle" class="icon-btn" title="Toggle Dark/Light Mode">
@@ -542,7 +550,7 @@
         <a href="https://discord.gg/jSSKFNknZS" class="btn stagger-item" target="_blank">
             <i class="fa-brands fa-discord"></i> <span>RJ's HQ</span>
         </a>
-        <a href="#" class="btn btn-accent stagger-item" onclick="switchView('creations-view'); return false;">
+        <a href="#" class="btn btn-accent stagger-item" data-target="creations-view">
             <i class="fa-solid fa-layer-group"></i> <span>View Other Creations</span>
         </a>
     </div>
@@ -587,7 +595,7 @@
     </div>
 
     <div style="text-align: center;" class="stagger-item">
-        <a href="#" class="icon-btn" style="display: inline-flex; width: auto; padding: 0 26px; border-radius: 30px; gap: 10px; font-weight: 500;" onclick="switchView('home-view'); return false;">
+        <a href="#" class="icon-btn" style="display: inline-flex; width: auto; padding: 0 26px; border-radius: 30px; gap: 10px; font-weight: 500;" data-target="home-view">
             <i class="fa-solid fa-arrow-left"></i> Back to Home
         </a>
     </div>
@@ -708,6 +716,41 @@
         const toast = document.getElementById('toast');
         toast.classList.add('show');
         setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function initializeMobileHaptics() {
+        const interactables = document.querySelectorAll('.btn, .icon-btn:not(#theme-toggle)');
+        
+        interactables.forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const url = this.getAttribute('href');
+                const targetView = this.getAttribute('data-target');
+                const action = this.getAttribute('data-action');
+                
+                // 1. Visually squash the button
+                this.classList.add('tapped');
+                
+                // 2. Fire hardware haptic vibration on mobile
+                if (navigator.vibrate) {
+                    try { navigator.vibrate(40); } catch(err) {}
+                }
+
+                // 3. Delay the action so the user sees the animation
+                setTimeout(() => {
+                    this.classList.remove('tapped');
+                    
+                    if (action === 'share') {
+                        shareProfile();
+                    } else if (targetView) {
+                        switchView(targetView);
+                    } else if (url && url !== '#') {
+                        window.open(url, '_blank');
+                    }
+                }, 220); // 220ms is the sweet spot for a satisfying visual click
+            });
+        });
     }
 
     // --- STREAMING_CHUNK: YT API & RESILIENT PLAYER CONTROLLER ---
@@ -905,7 +948,10 @@
                 });
         });
 
-    window.onload = () => triggerCascade('home-view');
+    window.onload = () => {
+        triggerCascade('home-view');
+        initializeMobileHaptics();
+    };
 </script>
 </body>
 </html>
